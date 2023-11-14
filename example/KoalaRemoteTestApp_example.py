@@ -6,15 +6,18 @@ import matplotlib.pyplot as plt
 #create instance to class pyRemote
 remote = client.pyKoalaRemoteClient()
 #Connect and Login
-remote.ConnectAndLoginDialog()
+remote.Connect("localhost")
+remote.Login("admin")
+#remote.ConnectAndLoginDialog()
 
-#Open a 2 wavelenghts configuration.
-remote.OpenConfigDialog()
+#Open a 2 wavelengths configuration.
+remote.OpenConfig(140)
 
 #Open main display windows
 remote.OpenPhaseWin();
 remote.OpenIntensityWin();
 remote.OpenHoloWin();
+remote.OpenStroboWin();
 
 #This block records an hologram so that you can later work offline with the rest of the script. 
 #Set logical source 0 (the 1st source of the current configuration) to ON
@@ -91,6 +94,9 @@ remote.AddCorrSegment(100, 100, 500, 1);
 remote.AddCorrSegment(200, 200, 600, 0);
 #//Compute 1D phase correction using tilt method
 remote.ComputePhaseCorrection(0, 1);
+
+remote.OpenStroboWin()
+remote.SetStroboscopeFrequencyScanEnabled(True);
 
 #Logout
 remote.Logout()
