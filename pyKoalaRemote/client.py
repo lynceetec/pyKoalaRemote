@@ -4,6 +4,7 @@ This class enables easy access to Koala TCP/IP remote interface
 Prompt dialog for connection and login
 Get functions return numpy Array
 2023-03-30 Modified by TCO (all functions using Remote Manual orders)
+2024.04.23 Add command to acquire a stack of data for different reconstruction distances
 """
 #from pythonnet import get_runtime_info
 #a = get_runtime_info()
@@ -14,6 +15,7 @@ import numpy as np
 import sys
 import clr
 import time
+import os
 
 #Add required dotNet reference
 clr.AddReference("System")
@@ -870,13 +872,236 @@ class pyKoalaRemoteClient:
     def StopStroboscope(self):
         return self.host.StopStroboscope()
 
+#specific codes
+    def CreateDirectory(self, directoryPath):
+        if not os.path.exists(directoryPath):
+            os.makedirs(directoryPath)   
+    
+    def SaveStackRecDistCM(self, distCM_Min, distCM_Max, distCM_step, savePath, saveIntensity=True,
+                             savePhase=True, saveAsBin=True, saveAsTxt=False, saveAsTif=False, saveLambda1=True,
+                             saveLambda2=False, saveLambdaSynthLong=False,
+                             saveLambdaSynthShort=False):
+        '''
+        distCM_Min : minimal reconstruction distance in cm
+        distCM_max : maximal reconstruction distance in cm
+        distCm_step : step in cm for the stack
+        savePath : path to save the data
+        saveIntensity : save Amplitude
+        savePhase : save Phase
+        saveAsBin : save as .bin format
+        saveAsTxt : save as .txt format
+        saveAsTif : save as .tif format
+        saveLambda1 : save data for lambda 1 #configuration lambda 1, 12 or 13
+        saveLambda2 : save data for second lambda  #configuration lambda 12 or 13
+        saveLambdaSynthLong : save data for long synthetic #configuration lambda 12 or 13
+        saveLambdaSynthShort : save data for short synthetic #configuration lambda 12 or 13
+        '''
+        Nsteps = (int)((distCM_Max-distCM_Min)/distCM_step)+1
+        d_stack = []
+        if Nsteps >= 1:
+            for k in range(Nsteps):
+                d = distCM_Min+k*distCM_step
+                d_stack.append(d)
+                self.SetRecDistCM(d)
+                self.OnDistanceChange()
+                if saveLambda1:
+                    if saveIntensity:
+                        self.SelectDisplayWL(2048)
+                        directory_amp = os.path.join(savePath,"Lambda1","Intensity","Float")
+                        if saveAsBin:
+                            directory = os.path.join(directory_amp,"Bin")
+                            self.CreateDirectory(directory)
+                            fname = os.path.join(directory,str(k).zfill(5)+"_intensity.bin")
+                            self.SaveImageFloatToFile(2, fname, True)
+                        if saveAsTxt:
+                            directory = os.path.join(directory_amp,"Txt")
+                            self.CreateDirectory(directory)
+                            fname = os.path.join(directory,str(k).zfill(5)+"_intensity.txt")
+                            self.SaveImageFloatToFile(2, fname, False)
+                        if saveAsTif:
+                            directory = os.path.join(savePath,"Lambda1","Intensity","Image")
+                            self.CreateDirectory(directory)
+                            fname = os.path.join(directory,str(k).zfill(5)+"_intensity.jpg")
+                            self.SaveImageToFile(2, fname)
+                    if savePhase:
+                        self.SelectDisplayWL(8192)
+                        directory_amp = os.path.join(savePath,"Lambda1","Phase","Float")
+                        if saveAsBin:
+                            directory = os.path.join(directory_amp,"Bin")
+                            self.CreateDirectory(directory)
+                            fname = os.path.join(directory,str(k).zfill(5)+"_phase.bin")
+                            self.SaveImageFloatToFile(4, fname, True)
+                        if saveAsTxt:
+                            directory = os.path.join(directory_amp,"Txt")
+                            self.CreateDirectory(directory)
+                            fname = os.path.join(directory,str(k).zfill(5)+"_phase.txt")
+                            self.SaveImageFloatToFile(4, fname, False)
+                        if saveAsTif:
+                            directory = os.path.join(savePath,"Lambda1","Phase","Image")
+                            self.CreateDirectory(directory)
+                            fname = os.path.join(directory,str(k).zfill(5)+"_phase.jpg")
+                            self.SaveImageToFile(4, fname)
+                            
+                if saveLambda2:
+                    if saveIntensity:
+                        self.SelectDisplayWL(4096)
+                        directory_amp = os.path.join(savePath,"Lambda2","Intensity","Float")
+                        if saveAsBin:
+                            directory = os.path.join(directory_amp,"Bin")
+                            self.CreateDirectory(directory)
+                            fname = os.path.join(directory,str(k).zfill(5)+"_intensity.bin")
+                            self.SaveImageFloatToFile(2, fname, True)
+                        if saveAsTxt:
+                            directory = os.path.join(directory_amp,"Txt")
+                            self.CreateDirectory(directory)
+                            fname = os.path.join(directory,str(k).zfill(5)+"_intensity.txt")
+                            self.SaveImageFloatToFile(2, fname, False)
+                        if saveAsTif:
+                            directory = os.path.join(savePath,"Lambda2","Intensity","Image")
+                            self.CreateDirectory(directory)
+                            fname = os.path.join(directory,str(k).zfill(5)+"_intensity.jpg")
+                            self.SaveImageToFile(2, fname)
+                    if savePhase:
+                        self.SelectDisplayWL(16384)
+                        directory_amp = os.path.join(savePath,"Lambda2","Phase","Float")
+                        if saveAsBin:
+                            directory = os.path.join(directory_amp,"Bin")
+                            self.CreateDirectory(directory)
+                            fname = os.path.join(directory,str(k).zfill(5)+"_phase.bin")
+                            self.SaveImageFloatToFile(4, fname, True)
+                        if saveAsTxt:
+                            directory = os.path.join(directory_amp,"Txt")
+                            self.CreateDirectory(directory)
+                            fname = os.path.join(directory,str(k).zfill(5)+"_phase.txt")
+                            self.SaveImageFloatToFile(4, fname, False)
+                        if saveAsTif:
+                            directory = os.path.join(savePath,"Lambda2","Phase","Image")
+                            self.CreateDirectory(directory)
+                            fname = os.path.join(directory,str(k).zfill(5)+"_phase.jpg")
+                            self.SaveImageToFile(4, fname)
+                            
+                if saveLambdaSynthLong:
+                    if savePhase:
+                        self.SelectDisplayWL(32768)
+                        directory_amp = os.path.join(savePath,"LambdaSynthLong","Phase","Float")
+                        if saveAsBin:
+                            directory = os.path.join(directory_amp,"Bin")
+                            self.CreateDirectory(directory)
+                            fname = os.path.join(directory,str(k).zfill(5)+"_phase.bin")
+                            self.SaveImageFloatToFile(4, fname, True)
+                        if saveAsTxt:
+                            directory = os.path.join(directory_amp,"Txt")
+                            self.CreateDirectory(directory)
+                            fname = os.path.join(directory,str(k).zfill(5)+"_phase.txt")
+                            self.SaveImageFloatToFile(4, fname, False)
+                        if saveAsTif:
+                            directory = os.path.join(savePath,"LambdaSynthLong","Phase","Image")
+                            self.CreateDirectory(directory)
+                            fname = os.path.join(directory,str(k).zfill(5)+"_phase.jpg")
+                            self.SaveImageToFile(4, fname)
+                        
+                if saveLambdaSynthShort:
+                    if savePhase:
+                        self.SelectDisplayWL(65536)
+                        directory_amp = os.path.join(savePath,"LambdaSynthSort","Phase","Float")
+                        if saveAsBin:
+                            directory = os.path.join(directory_amp,"Bin")
+                            self.CreateDirectory(directory)
+                            fname = os.path.join(directory,str(k).zfill(5)+"phase.bin")
+                            self.SaveImageFloatToFile(4, fname, True)
+                        if saveAsTxt:
+                            directory = os.path.join(directory_amp,"Txt")
+                            self.CreateDirectory(directory)
+                            fname = os.path.join(directory,str(k).zfill(5)+"phase.txt")
+                            self.SaveImageFloatToFile(4, fname, False)
+                        if saveAsTif:
+                            directory = os.path.join(savePath,"LambdaSynthShort","Phase","Image")
+                            self.CreateDirectory(directory)
+                            fname = os.path.join(directory,str(k).zfill(5)+"phase.jpg")
+                            self.SaveImageToFile(4, fname)
+        else:
+            print("Number of steps are smaller than one. Verify that minimal distance is smaller than maximal one and that the step is correct")
+        return np.array(d_stack)
+    def GetStackRecDistCM(self, distCM_Min, distCM_Max, distCM_step, GetIntensity=True,
+                             GetPhase=True, GetLambda1=True,
+                             GetLambda2=False, GetLambdaSynthLong=False,
+                             GetLambdaSynthShort=False):
+        
+        '''
+        distCM_Min : minimal reconstruction distance in cm
+        distCM_max : maximal reconstruction distance in cm
+        distCm_step : step in cm for the stack
+        saveIntensity : save Amplitude Stack
+        savePhase : save Phase Stack
+        saveLambda1 : save data for lambda 1 #configuration lambda 1, 12 or 13
+        saveLambda2 : save data for second lambda  #configuration lambda 12 or 13
+        saveLambdaSynthLong : save data for long synthetic #configuration lambda 12 or 13
+        saveLambdaSynthShort : save data for short synthetic #configuration lambda 12 or 13
+        '''
+        Nsteps = (int)((distCM_Max-distCM_Min)/distCM_step)+1
+        w = self.GetPhaseWidth()
+        h = self.GetPhaseHeight()
+        IntensityLambda1Stack = None
+        IntensityLambda2Stack = None
+        PhaseLambda1Stack = None
+        PhaseLambda2Stack = None
+        PhaseLambdaSynthLongStack = None
+        PhaseLambdaSynthShortStack = None
+        d_stack = []
+        if Nsteps >= 1:
+            for k in range(Nsteps):
+                d = distCM_Min+k*distCM_step
+                d_stack.append(d)
+                self.SetRecDistCM(d)
+                self.OnDistanceChange()
+                if GetLambda1:
+                    if GetIntensity:
+                        self.SelectDisplayWL(2048)
+                        if k == 0 :
+                            IntensityLambda1Stack = np.ones((h,w,Nsteps))*np.nan
+                        IntensityLambda1Stack[:,:,k]= self.GetIntensity32fImage()
+                    if GetPhase:
+                        self.SelectDisplayWL(8192)
+                        if k == 0 :
+                            PhaseLambda1Stack = np.ones((h,w,Nsteps))*np.nan
+                        PhaseLambda1Stack[:,:,k]= self.GetPhase32fImage()
+                            
+                if GetLambda2:
+                    if GetIntensity:
+                        self.SelectDisplayWL(4096)
+                        if k == 0 :
+                            IntensityLambda2Stack = np.ones((h,w,Nsteps))*np.nan
+                        IntensityLambda2Stack[:,:,k]= self.GetIntensity32fImage()
+                    if GetPhase:
+                        self.SelectDisplayWL(16384)
+                        if k == 0 :
+                            PhaseLambda2Stack = np.ones((h,w,Nsteps))*np.nan
+                        PhaseLambda2Stack[:,:,k]= self.GetPhase32fImage()
+                            
+                if GetLambdaSynthLong:
+                    if GetPhase:
+                        self.SelectDisplayWL(32768)
+                        if k == 0 :
+                            PhaseLambdaSynthLongStack = np.ones((h,w,Nsteps))*np.nan
+                        PhaseLambdaSynthLongStack[:,:,k]= self.GetPhase32fImage()
+                        
+                if GetLambdaSynthShort:
+                    if GetPhase:
+                        self.SelectDisplayWL(65536)
+                        if k == 0 :
+                            PhaseLambdaSynthShortStack = np.ones((h,w,Nsteps))*np.nan
+                        PhaseLambdaSynthShortStack[:,:,k]= self.GetPhase32fImage()
+        else:
+            print("Number of steps are smaller than one. Verify that minimal distance is smaller than maximal one and that the step is correct")
+
+        return IntensityLambda1Stack,PhaseLambda1Stack, IntensityLambda2Stack,PhaseLambda2Stack,PhaseLambdaSynthLongStack,PhaseLambdaSynthShortStack, np.array(d_stack)
 
 #test the class when running this file directly
 if __name__ == '__main__' :
     remote = pyKoalaRemoteClient()
     remote.ConnectAndLoginDialog()
     remote.OpenConfigDialog()
-    remote.LoadHolo(r'C:\tmp\holo.tif',1)
+    remote.LoadHolo(r'C:\tmp_remote_test\Hologram12.tif',2)
     remote.OpenHoloWin()
     remote.OpenIntensityWin()
     remote.OpenPhaseWin()
@@ -895,4 +1120,11 @@ if __name__ == '__main__' :
     remote.SetUnwrap2DState(False)
     remote.ResetPhaseOffsetAdjustmentZone()
     remote.AddPhaseOffsetAdjustmentZone(50,50, 200,200)
+    distCM_Min = 0
+    distCM_Max = 9.81
+    distCM_step = 0.5
+    savePath = r'C:\tmp_remote_test'
+    d_stack = remote.SaveStackRecDistCM(distCM_Min, distCM_Max, distCM_step, savePath)
+    print(d_stack)
+#    IntensityLambda1Stack,PhaseLambda1Stack, IntensityLambda2Stack,PhaseLambda2Stack,PhaseLambdaSynthLongStack,PhaseLambdaSynthShortStack = remote.GetStackRecDistCM(distCM_Min, distCM_Max, distCM_step)
     remote.Logout()
