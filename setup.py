@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pyKoalaRemote",
-    version="1.0.3",
+    version="1.1.0",
     author="Software Team: J. Parent - F. Mendels - T. Colomb",
     author_email="software@lynceetec.com",
     description="Python wrapper for dotNet Koala Remote Client provided by LyncéeTec to control Digital Holographique Microscope using proprietary Koala software",
